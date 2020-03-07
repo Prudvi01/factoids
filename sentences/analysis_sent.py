@@ -196,7 +196,7 @@ def findDistance(article_name):
     #plt.plot(xAxis, p(distance), '--',lw=1.5, color ='blue', label ="optimized data")
     #plt.legend()
     plt.savefig('images/'+article_name+'.png',bbox_inches = "tight",dpi=800)
-    plt.show()     
+    #plt.show()     
     
     '''
     plt.style.use('fivethirtyeight')
