@@ -78,10 +78,10 @@ def test_similarity(text1, text2):
 
 
 def getDistance(articleName):
-    numOfRevi = num_of_revi('/Users/prudvikamtam/Projects/research/Factoids/wiki_data/' + articleName + '.xml')
+    numOfRevi = num_of_revi('/home/s2/internship/research/factoids/wiki_data/' + articleName + '.xml')
     revi = 0
     t1 = time.time()
-    tree = ec.parse('/Users/prudvikamtam/Projects/research/Factoids/wiki_data/' + articleName + '.xml')
+    tree = ec.parse('/home/s2/internship/research/factoids/wiki_data/' + articleName + '.xml')
     result = []
     root = tree.getroot()
     root = root[1]
