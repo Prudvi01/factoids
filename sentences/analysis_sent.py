@@ -1,4 +1,4 @@
-import gensim
+#import gensim
 import xml.etree.cElementTree as ec
 import mwparserfromhell
 import matplotlib.pyplot as plt
