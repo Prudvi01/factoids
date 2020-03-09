@@ -15,6 +15,7 @@ from nltk.tokenize import word_tokenize
 from scipy.optimize import curve_fit 
 import warnings
 import os
+import sys
 from sentence_transformers import SentenceTransformer
 import nltk
 from test import num_of_revi
@@ -48,10 +49,10 @@ def test_similarity(text1, text2):
     return cosine_similarity(vec1, vec2)
 
 def getDistance(articleName):
-    numOfRevi = num_of_revi('/home/s2/internship/research/factoids/wiki_data/' + articleName + '.xml')
+    numOfRevi = num_of_revi(sys.argv[1] + articleName + '.xml')
     revi = 0
     t1 = time.time()
-    tree = ec.parse('/home/s2/internship/research/factoids/wiki_data/' + articleName + '.xml')
+    tree = ec.parse(sys.argv[1] + articleName + '.xml')
     result = []
     root = tree.getroot()
     root = root[1]
@@ -167,5 +168,10 @@ for f in fileNames:
         print('')
         print("Article "+f[:-4]+" is done:")
 '''
+arguments = sys.argv
+print(arguments)
+if len(arguments) < 2:
+    print('No file path mentioned. \nUsage "python analysis-bert.py path/to/the/xml/file/in/directory/"')
+    exit(1)
 
 findDistance('Bombing_of_Singapore_(1944–45)')
