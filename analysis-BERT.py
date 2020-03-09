@@ -48,11 +48,11 @@ def test_similarity(text1, text2):
     #print(vec1.shape)
     return cosine_similarity(vec1, vec2)
 
-def getDistance(articleName):
-    numOfRevi = num_of_revi(sys.argv[1] + articleName + '.xml')
+def getDistance(articleName, revilimit):
+    numOfRevi = num_of_revi('wiki_data/' + articleName + '.xml')
     revi = 0
     t1 = time.time()
-    tree = ec.parse(sys.argv[1] + articleName + '.xml')
+    tree = ec.parse('wiki_data/' + articleName + '.xml')
     result = []
     root = tree.getroot()
     root = root[1]
@@ -109,7 +109,7 @@ def getDistance(articleName):
                     except:
                         reverts[sha1Value] = 1
             
-            if revi >= numOfRevi:
+            if revi >= revilimit:
                 print('elif revi = ' + str(revi))
                 break
         
@@ -127,8 +127,8 @@ def test(x, a, b, c):
     return a * np.exp(-b * x) + c
 
 
-def findDistance(article_name):
-    distance = getDistance(article_name)
+def findDistance(article_name, revilimit):
+    distance = getDistance(article_name, revilimit)
 
     #print(distance)
     distance = np.array(distance)
@@ -143,23 +143,25 @@ def findDistance(article_name):
     p = np.poly1d(z)
     
     xp = np.linspace(0, len(distance), 100)
-    #param, param_cov = curve_fit(test, xAxis, distance, bounds=(0, [3., 1., 0.5]))
+    plt.style.use('fivethirtyeight')
+    fig, ax = plt.subplots()
+    #plt.errorbar(xAxis, distance[0], yerr=distance[1], fmt='o', markersize=2, ls='--', lw=0.8, color='black', ecolor='lightgray', elinewidth=0.7, capsize=0)
+    ax.set_xlabel('Revisions')
     
-    #print("Sine funcion coefficients:") 
-    #print(param) 
-    #print("Covariance of coefficients:") 
-    #print(param_cov)
-          
+    ax.set_ylabel('Average of Distance')
+    
+    ax.plot(xAxis,distance,color='coral',linewidth=2.0)
+    plt.savefig('images/'+article_name+'BERTrev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
+    plt.show()
     '''Below 4 lines can be un-commented for plotting results  
-    using matplotlib as shown in the first example. '''
+    using matplotlib as shown in the first example. 
     plt.plot(xAxis, distance, '.', xp, p(xp), '-', lw=1.8)  
     plt.plot(xAxis, distance, 'b-', lw=1.5,color ='red', label ="data") 
     plt.plot(xAxis, test(xAxis,*param), '--',lw=1.5, color ='blue', label ="optimized data") 
     plt.plot(xAxis, p(distance), '--',lw=1.5, color ='blue', label ="optimized data")
     plt.legend()
-    plt.savefig('images/'+article_name+'.png',bbox_inches = "tight",dpi=800)
+    plt.savefig('images/'+article_name+'rev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
 
-'''
 fileNames = os.listdir('results/')
 for f in fileNames:
     if not f == '.DS_Store':
@@ -167,11 +169,14 @@ for f in fileNames:
         findDistance(f[:-4])
         print('')
         print("Article "+f[:-4]+" is done:")
+        
 '''
+article_name = 'Bombing_of_Singapore_(1944–45)'
 arguments = sys.argv
-print(arguments)
+numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
 if len(arguments) < 2:
-    print('No file path mentioned. \nUsage "python analysis-bert.py path/to/the/xml/file/in/directory/"')
-    exit(1)
+    revilimit = numOfRevi
+else:
+    revilimit = int(sys.argv[1])
 
-findDistance('Bombing_of_Singapore_(1944–45)')
+findDistance(article_name, revilimit)

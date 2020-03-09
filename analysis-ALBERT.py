@@ -17,6 +17,7 @@ from nltk.tokenize import word_tokenize
 from scipy.optimize import curve_fit 
 import warnings
 import os
+import sys
 from sentence_transformers import SentenceTransformer
 from sentence_transformers import models, losses
 import nltk
@@ -62,11 +63,11 @@ def test_similarity(text1, text2):
     return cosine_similarity(vec1, vec2)
 
 
-def getDistance(articleName):
-    numOfRevi = num_of_revi('/Users/prudvikamtam/Projects/research/Factoids/wiki_data/' + articleName + '.xml')
+def getDistance(articleName, revilimit):
+    numOfRevi = num_of_revi('wiki_data/' + articleName + '.xml')
     revi = 0
     t1 = time.time()
-    tree = ec.parse('/Users/prudvikamtam/Projects/research/Factoids/wiki_data/' + articleName + '.xml')
+    tree = ec.parse('wiki_data/' + articleName + '.xml')
     result = []
     root = tree.getroot()
     root = root[1]
@@ -121,7 +122,7 @@ def getDistance(articleName):
                     except:
                         reverts[sha1Value] = 1
             
-            if revi >= 10:
+            if revi >= revilimit:
                 print('elif revi = ' + str(revi))
                 break
         
@@ -136,15 +137,15 @@ def test(x, a, b, c):
     return a * np.exp(-b * x) + c
 
 
-def findDistance(article_name):
-    distance = getDistance(article_name)
+def findDistance(article_name, revilimit):
+    distance = getDistance(article_name, revilimit)
     distance = np.array(distance)
     xAxis = [i for i in range(1,len(distance)+1)]
     xAxis = np.array(xAxis)
     z = np.polyfit(xAxis, distance, 3)
     p = np.poly1d(z)
     
-    xp = np.linspace(0, len(distance), 100
+    xp = np.linspace(0, len(distance), 100)
 
     plt.style.use('fivethirtyeight')
     fig, ax = plt.subplots()
@@ -154,7 +155,7 @@ def findDistance(article_name):
     ax.set_ylabel('Average of Distance')
     
     ax.plot(xAxis,distance,color='coral',linewidth=2.0)
-    plt.savefig('images/'+article_name+'rev_'+str(revi)+'.png',bbox_inches = "tight",dpi=800)
+    plt.savefig('images/'+article_name+'ALBERTrev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
     plt.show()
     '''
     Below 4 lines can be un-commented for plotting results  
@@ -168,20 +169,6 @@ def findDistance(article_name):
     plt.show()     
     
     '''
-    '''
-    plt.style.use('fivethirtyeight')
-    fig, ax = plt.subplots()
-    #plt.errorbar(xAxis, distance[0], yerr=distance[1], fmt='o', markersize=2, ls='--', lw=0.8, color='black', ecolor='lightgray', elinewidth=0.7, capsize=0)
-    ax.set_xlabel('Revisions')
-    
-    ax.set_ylabel('Average of Distance')
-    
-    ax.plot(xAxis,distance,color=col,linewidth=2.0)
-    
-    plt.show()                    
-    '''
-
-
 '''
 fileNames = os.listdir('results/')
 for f in fileNames:
@@ -191,5 +178,13 @@ for f in fileNames:
         print('')
         print("Article "+f[:-4]+" is done:")
 '''
+article_name = 'Bombing_of_Singapore_(1944–45)'
+arguments = sys.argv
+numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
+if len(arguments) < 2:
+    revilimit = numOfRevi
+else:
+    revilimit = int(sys.argv[1])
 
-findDistance('Bombing_of_Singapore_(1944–45)')
+
+findDistance(article_name, revilimit)
