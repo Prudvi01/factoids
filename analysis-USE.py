@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import xml.etree.cElementTree as ec
 import mwparserfromhell
 import matplotlib.pyplot as plt
@@ -19,19 +20,49 @@ import sys
 from sentence_transformers import SentenceTransformer
 import nltk
 from test import num_of_revi
+start_time = time.time()
+
 nltk.download('punkt')
 
 tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 stop_words = set(stopwords.words('english'))
 
-#Loading BERT model
-model = SentenceTransformer('bert-base-nli-mean-tokens')
 
+#To make tf 2.0 compatible with tf1.0 code, we disable the tf2.0 functionalities
+tf.compat.v1.disable_eager_execution()
+
+#model=gensim.models.KeyedVectors.load_word2vec_format("wiki-news-300d-1M-subword.vec")
+module_url = "https://tfhub.dev/google/universal-sentence-encoder/2" #@param ["https://tfhub.dev/google/universal-sentence-encoder/2", "https://tfhub.dev/google/universal-sentence-encoder-large/3"]
+embed = hub.Module(module_url)
+print("model loaded")
+g = tf.Graph()
+
+with g.as_default():
+  # We will be feeding 1D tensors of text into the graph.
+  text_input = tf.compat.v1.placeholder(dtype=tf.string, shape=[None])
+  embed = hub.Module("https://tfhub.dev/google/universal-sentence-encoder/2")
+  embedded_text = embed(text_input)
+  init_op = tf.group([tf.compat.v1.global_variables_initializer(), tf.compat.v1.tables_initializer()])
+
+g.finalize()
+
+session = tf.compat.v1.Session(graph=g)
+session.run(init_op)
+
+result = []
+'''
 def get_features(texts):
     if type(texts) is str:
         texts = [texts]
-    embedded_text = model.encode(texts)
-    return embedded_text
+    with tf.Session() as sess:
+        sess.run([tf.global_variables_initializer(), tf.tables_initializer()])
+        return sess.run(embed(texts))
+'''
+def get_features(texts):
+    if type(texts) is str:
+        texts = [texts]
+    return session.run(embedded_text, feed_dict={text_input: texts})
+
 
 def cosine_similarity(v1, v2):
     mag1 = np.linalg.norm(v1)
@@ -46,11 +77,12 @@ def test_similarity(text1, text2):
     #print(vec1.shape)
     return cosine_similarity(vec1, vec2)
 
-def getDistance(articleName, revilimit):
-    numOfRevi = num_of_revi('wiki_data/' + articleName + '.xml')
+
+def getDist(article_name, revilimit):
+    numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
     revi = 0
     t1 = time.time()
-    tree = ec.parse('wiki_data/' + articleName + '.xml')
+    tree = ec.parse('wiki_data/' + article_name + '.xml')
     result = []
     root = tree.getroot()
     root = root[1]
@@ -69,6 +101,8 @@ def getDistance(articleName, revilimit):
                     if(Text!=None):  
                                              
                         Text = knolAnalysis.getCleanText(Text)
+                        #Text = clean(Text)
+                        #print(Text)
                         sent_list = tokenizer.tokenize(Text)
                         sent_num = 0
                         
@@ -116,29 +150,14 @@ def getDistance(articleName, revilimit):
     t2 = time.time()
     print(t2-t1)
     return result
-    #print(clean_Text)
-
-
-def test(x, a, b, c):
-    return a * np.exp(-b * x) + c
-
-
-def findDistance(article_name, revilimit):
-    distance = getDistance(article_name, revilimit)
-
-    #print(distance)
-    distance = np.array(distance)
-    xAxis = [i for i in range(1,len(distance)+1)]
-    xAxis = np.array(xAxis)
-    '''
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore', np.RankWarning)
-        p30 = np.poly1d(np.polyfit(xAxis, distance, 30))  
-    '''    
-    z = np.polyfit(xAxis, distance, 3)
-    p = np.poly1d(z)
+        #print(required)
+        #print(len(required))
     
-    xp = np.linspace(0, len(distance), 100)
+
+def plotDist(article_name, revilimit):
+    result = getDist(article_name, revilimit)
+    xAxis = [i for i in range(1,len(result)+1)]
+    
     plt.style.use('fivethirtyeight')
     fig, ax = plt.subplots()
     #plt.errorbar(xAxis, distance[0], yerr=distance[1], fmt='o', markersize=2, ls='--', lw=0.8, color='black', ecolor='lightgray', elinewidth=0.7, capsize=0)
@@ -146,27 +165,11 @@ def findDistance(article_name, revilimit):
     
     ax.set_ylabel('Average of Distance')
     
-    ax.plot(xAxis,distance,color='coral',linewidth=2.0)
-    plt.savefig('images/'+article_name+'BERTrev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
+    ax.plot(xAxis,result,color='coral',linewidth=2.0)
+    plt.savefig('images/'+article_name+'USErev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
     plt.show()
-    '''Below 4 lines can be un-commented for plotting results  
-    using matplotlib as shown in the first example. 
-    plt.plot(xAxis, distance, '.', xp, p(xp), '-', lw=1.8)  
-    plt.plot(xAxis, distance, 'b-', lw=1.5,color ='red', label ="data") 
-    plt.plot(xAxis, test(xAxis,*param), '--',lw=1.5, color ='blue', label ="optimized data") 
-    plt.plot(xAxis, p(distance), '--',lw=1.5, color ='blue', label ="optimized data")
-    plt.legend()
-    plt.savefig('images/'+article_name+'rev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
+    print("--- Time taken to execute: %s seconds ---" % (time.time() - start_time))
 
-fileNames = os.listdir('results/')
-for f in fileNames:
-    if not f == '.DS_Store':
-        print('1')
-        findDistance(f[:-4])
-        print('')
-        print("Article "+f[:-4]+" is done:")
-        
-'''
 article_name = 'Bombing_of_Singapore_(1944–45)'
 arguments = sys.argv
 numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
@@ -175,4 +178,4 @@ if len(arguments) < 2:
 else:
     revilimit = int(sys.argv[1])
 
-findDistance(article_name, revilimit)
+plotDist(article_name, revilimit)
