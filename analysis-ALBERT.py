@@ -43,6 +43,27 @@ pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension
 
 model = SentenceTransformer(modules=[word_embedding_model, pooling_model])
 
+def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print('\r%s |%s| %s/%s %s%% %s' % (prefix, bar, iteration, total, percent, suffix), end = printEnd)
+    # Print New Line on Complete
+    if iteration == total: 
+        print()
+
 def get_features(texts):
     if type(texts) is str:
         texts = [texts]
@@ -62,10 +83,10 @@ def test_similarity(text1, text2):
     #print(vec1.shape)
     return cosine_similarity(vec1, vec2)
 
-
 def getDistance(articleName, revilimit):
     numOfRevi = num_of_revi('wiki_data/' + articleName + '.xml')
     revi = 0
+    printProgressBar(0, revilimit, prefix = 'Progress:', suffix = 'Complete', length = 50)
     t1 = time.time()
     tree = ec.parse('wiki_data/' + articleName + '.xml')
     result = []
@@ -77,7 +98,8 @@ def getDistance(articleName, revilimit):
     for child in root:
         if 'revision' in child.tag:
             revi += 1
-            print('REVISION = ' + str(revi) + '/' + str(numOfRevi))
+            printProgressBar(revi, revilimit, prefix = article_name, suffix = 'Complete', length = 50)
+            #print('REVISION = ' + str(revi) + '/' + str(numOfRevi))
             for each in child:           
                 if 'text' in each.tag:
                     clean_Text = []
@@ -132,10 +154,8 @@ def getDistance(articleName, revilimit):
     print(t2-t1)
     return result
 
-
 def test(x, a, b, c):
     return a * np.exp(-b * x) + c
-
 
 def findDistance(article_name, revilimit):
     distance = getDistance(article_name, revilimit)
@@ -156,7 +176,7 @@ def findDistance(article_name, revilimit):
     
     ax.plot(xAxis,distance,color='coral',linewidth=2.0)
     plt.savefig('images/'+article_name+'ALBERTrev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
-    plt.show()
+    #plt.show()
     '''
     Below 4 lines can be un-commented for plotting results  
     using matplotlib as shown in the first example. 
@@ -167,16 +187,22 @@ def findDistance(article_name, revilimit):
     plt.legend()
     plt.savefig('images/'+article_name+'.png',bbox_inches = "tight",dpi=800)
     plt.show()     
-    
     '''
-'''
-fileNames = os.listdir('results/')
-for f in fileNames:
-    if not f == '.DS_Store':
-        print('1')
-        findDistance(f[:-4])
+
+fileNames = os.listdir('wiki_data/')
+for article_name in fileNames:
+    if not article_name == '.DS_Store':
+        arguments = sys.argv
+        numOfRevi = num_of_revi('wiki_data/' + article_name)
+        if len(arguments) < 2:
+            revilimit = numOfRevi
+        else:
+            revilimit = int(sys.argv[1])
+
+        findDistance(article_name[:-4], revilimit)
         print('')
-        print("Article "+f[:-4]+" is done:")
+        print("Article "+article_name[:-4]+" is done:")
+
 '''
 article_name = 'Bombing_of_Singapore_(1944–45)'
 arguments = sys.argv
@@ -185,6 +211,5 @@ if len(arguments) < 2:
     revilimit = numOfRevi
 else:
     revilimit = int(sys.argv[1])
-
-
 findDistance(article_name, revilimit)
+'''

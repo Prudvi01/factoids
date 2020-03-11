@@ -50,19 +50,33 @@ session = tf.compat.v1.Session(graph=g)
 session.run(init_op)
 
 result = []
-'''
-def get_features(texts):
-    if type(texts) is str:
-        texts = [texts]
-    with tf.Session() as sess:
-        sess.run([tf.global_variables_initializer(), tf.tables_initializer()])
-        return sess.run(embed(texts))
-'''
+
+# Print iterations progress
+def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print('\r%s |%s| %s/%s %s%% %s' % (prefix, bar, iteration, total, percent, suffix), end = printEnd)
+    # Print New Line on Complete
+    if iteration == total: 
+        print()
+        
 def get_features(texts):
     if type(texts) is str:
         texts = [texts]
     return session.run(embedded_text, feed_dict={text_input: texts})
-
 
 def cosine_similarity(v1, v2):
     mag1 = np.linalg.norm(v1)
@@ -77,10 +91,10 @@ def test_similarity(text1, text2):
     #print(vec1.shape)
     return cosine_similarity(vec1, vec2)
 
-
 def getDist(article_name, revilimit):
     numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
     revi = 0
+    printProgressBar(0, revilimit, prefix = 'Progress:', suffix = 'Complete', length = 50)
     t1 = time.time()
     tree = ec.parse('wiki_data/' + article_name + '.xml')
     result = []
@@ -92,7 +106,8 @@ def getDist(article_name, revilimit):
     for child in root:
         if 'revision' in child.tag:
             revi += 1
-            print('REVISION = ' + str(revi) + '/' + str(numOfRevi))
+            printProgressBar(revi, revilimit, prefix = article_name, suffix = 'Complete', length = 50)
+            #print('REVISION = ' + str(revi) + '/' + str(numOfRevi))
             for each in child:           
                 if 'text' in each.tag:
                     clean_Text = []
@@ -153,7 +168,6 @@ def getDist(article_name, revilimit):
         #print(required)
         #print(len(required))
     
-
 def plotDist(article_name, revilimit):
     result = getDist(article_name, revilimit)
     xAxis = [i for i in range(1,len(result)+1)]
@@ -167,9 +181,24 @@ def plotDist(article_name, revilimit):
     
     ax.plot(xAxis,result,color='coral',linewidth=2.0)
     plt.savefig('images/'+article_name+'USErev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
-    plt.show()
+    #plt.show()
     print("--- Time taken to execute: %s seconds ---" % (time.time() - start_time))
 
+fileNames = os.listdir('wiki_data/')
+for article_name in fileNames:
+    if not article_name == '.DS_Store':
+        arguments = sys.argv
+        numOfRevi = num_of_revi('wiki_data/' + article_name)
+        if len(arguments) < 2:
+            revilimit = numOfRevi
+        else:
+            revilimit = int(sys.argv[1])
+
+        plotDist(article_name[:-4], revilimit)
+        print('')
+        print("Article "+article_name[:-4]+" is done:")
+        
+'''
 article_name = 'Bombing_of_Singapore_(1944–45)'
 arguments = sys.argv
 numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
@@ -179,3 +208,4 @@ else:
     revilimit = int(sys.argv[1])
 
 plotDist(article_name, revilimit)
+'''
