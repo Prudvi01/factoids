@@ -180,7 +180,7 @@ def plotDist(article_name, revilimit):
     ax.set_ylabel('Average of Distance')
     
     ax.plot(xAxis,result,color='coral',linewidth=2.0)
-    plt.savefig('images/'+article_name+'USErev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
+    plt.savefig('images/USE/'+article_name+'USErev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
     #plt.show()
     print("--- Time taken to execute: %s seconds ---" % (time.time() - start_time))
 

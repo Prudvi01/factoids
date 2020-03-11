@@ -165,7 +165,7 @@ def findDistance(article_name, revilimit):
     ax.set_ylabel('Average of Distance')
     
     ax.plot(xAxis,distance,color='coral',linewidth=2.0)
-    plt.savefig('images/'+article_name+'BERTrev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
+    plt.savefig('images/BERT/'+article_name+'BERTrev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
     #plt.show()
     '''Below 4 lines can be un-commented for plotting results  
     using matplotlib as shown in the first example. 
