@@ -179,7 +179,7 @@ def findDistance(article_name, revilimit):
 
 fileNames = os.listdir('wiki_data/')
 for article_name in fileNames:
-    if not article_name == '.DS_Store':
+    if not article_name == '.DS_Store' and not article_name == '.gitignore':
         arguments = sys.argv
         numOfRevi = num_of_revi('wiki_data/' + article_name)
         if len(arguments) < 2:
