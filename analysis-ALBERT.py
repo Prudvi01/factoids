@@ -172,7 +172,7 @@ def findDistance(article_name, revilimit):
     #plt.errorbar(xAxis, distance[0], yerr=distance[1], fmt='o', markersize=2, ls='--', lw=0.8, color='black', ecolor='lightgray', elinewidth=0.7, capsize=0)
     ax.set_xlabel('Revisions')
     
-    ax.set_ylabel('Average of Distance')
+    ax.set_ylabel('Similarity')
     
     ax.plot(xAxis,distance,color='coral',linewidth=2.0)
     plt.savefig('images/ALBERT/'+article_name+'ALBERTrev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
