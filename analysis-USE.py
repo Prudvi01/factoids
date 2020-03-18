@@ -184,19 +184,28 @@ def plotDist(article_name, revilimit):
     #plt.show()
     print("--- Time taken to execute: %s seconds ---" % (time.time() - start_time))
 
+completed = open("completeduse.txt", "r")
+
 fileNames = os.listdir('wiki_data/')
 for article_name in fileNames:
     if not article_name == '.DS_Store' and not article_name == '.gitignore':
-        arguments = sys.argv
-        numOfRevi = num_of_revi('wiki_data/' + article_name)
-        if len(arguments) < 2:
-            revilimit = numOfRevi
-        else:
-            revilimit = int(sys.argv[1])
+        if not article_name[:-4] in completed:
+            completed.close()    
+            arguments = sys.argv
+            numOfRevi = num_of_revi('wiki_data/' + article_name)
+            if len(arguments) < 2:
+                revilimit = numOfRevi
+            else:
+                revilimit = int(sys.argv[1])
 
-        plotDist(article_name[:-4], revilimit)
-        print('')
-        print("Article "+article_name[:-4]+" is done:")
+            plotDist(article_name[:-4], revilimit)
+            print('')
+            print("Article "+article_name[:-4]+" is done:")
+            f = open("completeduse.txt", "a")
+            f.write(article_name[:-4] + '\n')
+            f.close()
+        else:
+            print('Skipping ' + article_name[:-4] + ' since already completed.')
         
 '''
 article_name = 'Bombing_of_Singapore_(1944–45)'
