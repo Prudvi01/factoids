@@ -94,6 +94,7 @@ def test_similarity(text1, text2):
 def getDist(article_name, revilimit):
     numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
     revi = 0
+    print(article_name)
     printProgressBar(0, revilimit, prefix = 'Progress:', suffix = 'Complete', length = 50)
     t1 = time.time()
     tree = ec.parse('wiki_data/' + article_name + '.xml')
