@@ -170,21 +170,49 @@ def getDist(article_name, revilimit):
         #print(len(required))
     
 def plotDist(article_name, revilimit):
-    result = getDist(article_name, revilimit)
+    posfile = open("positivedeg3.txt", "a")
+    result = getDist(article_name, revilimit) # Y axis
     xAxis = [i for i in range(1,len(result)+1)]
+    xAxis = np.array(xAxis)  
+    deg = 3
+    # Find the polynomial equation 
+    z = np.polyfit(xAxis, result, deg) 
+    p = np.poly1d(z)
+    '''
+    print('p = ')
+    print(p)'''
+    # Find the derivative of the polynomial equation
+    derivative = np.polyder(p)
+    '''
+    print('derivative = ')
+    print(np.polyder(p))'''
+    #x = np.polyval(derivative, xAxis)
+    x = [(np.polyval(derivative,i)) for i in xAxis]
+    # Find the number of positive slopes
+    posper = 0
+    for i in x:
+        if i > 0:
+            posper += 1
+    posper = (posper/len(result)) * 100
+
+    # Note down the positive slopes percentage of the file 
+    posfile.write(article_name[:-4] + ' = ' + str(posper) + '% positive.''\n')
+    print('Positive percentage = ', str(posper))
+    xp = np.linspace(0, len(result), 100)
+    plt.set_xlabel('Revisions')
+    plt.set_ylabel('Similarity')
+    plt.plot(xAxis, result, '.', xp, p(xp), '-', lw=1.8)
+    plt.suptitle(article_name, fontsize = 16)
+    plt.title('Positive = ' + str(posper) + '%')
+    plt.savefig('images/USEslope/'+article_name+'USErev_'+str(revilimit)+'deg_'+str(deg)+'.png',bbox_inches = "tight",dpi=800)
     
-    plt.style.use('fivethirtyeight')
-    fig, ax = plt.subplots()
-    #plt.errorbar(xAxis, distance[0], yerr=distance[1], fmt='o', markersize=2, ls='--', lw=0.8, color='black', ecolor='lightgray', elinewidth=0.7, capsize=0)
-    ax.set_xlabel('Revisions')
-    
-    ax.set_ylabel('Similarity')
-    
-    ax.plot(xAxis,result,color='coral',linewidth=2.0)
-    plt.savefig('images/USE/'+article_name+'USErev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
+    #plt.savefig('images/USE/'+article_name+'USErev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
     #plt.show()
     print("--- Time taken to execute: %s seconds ---" % (time.time() - start_time))
+    posfile.close()
+    return posper
 
+posper = 0
 completedfile = open("completeduse.txt", "r")
 completed = completedfile.readlines()
 completedfile.close()
@@ -199,7 +227,7 @@ for article_name in fileNames:
             else:
                 revilimit = int(sys.argv[1])
 
-            plotDist(article_name[:-4], revilimit)
+            posper += plotDist(article_name[:-4], revilimit)
             print('')
             f = open("completeduse.txt", "a")
             f.write(article_name[:-4] + '\n')
@@ -208,7 +236,9 @@ for article_name in fileNames:
             
         else:
             print('Skipping ' + article_name[:-4])
-        
+
+posfile = open("positivedeg3.txt", "a")
+posfile.write('Average percentage across all 58 files = ' + str((posper/58) * 100))
 '''
 article_name = 'Bombing_of_Singapore_(1944–45)'
 arguments = sys.argv
