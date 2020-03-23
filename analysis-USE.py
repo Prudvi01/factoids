@@ -170,11 +170,11 @@ def getDist(article_name, revilimit):
         #print(len(required))
     
 def plotDist(article_name, revilimit):
-    posfile = open("positivedeg3.txt", "a")
+    posfile = open("positivedeg10.txt", "a")
     result = getDist(article_name, revilimit) # Y axis
     xAxis = [i for i in range(1,len(result)+1)]
     xAxis = np.array(xAxis)  
-    deg = 3
+    deg = 10
     # Find the polynomial equation 
     z = np.polyfit(xAxis, result, deg) 
     p = np.poly1d(z)
@@ -213,7 +213,8 @@ def plotDist(article_name, revilimit):
     posfile.close()
     return posper
 
-posper = 0
+totalposper = 0
+x = 0 
 completedfile = open("completeduse.txt", "r")
 completed = completedfile.readlines()
 completedfile.close()
@@ -228,18 +229,21 @@ for article_name in fileNames:
             else:
                 revilimit = int(sys.argv[1])
 
-            posper += plotDist(article_name[:-4], revilimit)
+            x += plotDist(article_name[:-4], revilimit)
+            totalposper += x
             print('')
             f = open("completeduse.txt", "a")
             f.write(article_name[:-4] + '\n')
             f.close()
             print("Article "+article_name[:-4]+" is done:")
+            print('Total = ' + str(totalposper))
             
         else:
             print('Skipping ' + article_name[:-4])
 
-posfile = open("positivedeg3.txt", "a")
-posfile.write('Average percentage across all 58 files = ' + str((posper/58) * 100))
+posfile = open("positivedeg10.txt", "a")
+posfile.write('Total = ' + str(totalposper))
+posfile.close()
 '''
 article_name = 'Bombing_of_Singapore_(1944–45)'
 arguments = sys.argv
