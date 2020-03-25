@@ -170,22 +170,31 @@ def getDist(article_name, revilimit):
         #print(len(required))
     
 def plotDist(article_name, revilimit):
-    posfile = open("positivedeg10.txt", "a")
+    posfile = open("positivedeg1.txt", "a")
     result = getDist(article_name, revilimit) # Y axis
     xAxis = [i for i in range(1,len(result)+1)]
     xAxis = np.array(xAxis)  
-    deg = 10
+    deg = 1
+    slope, intercept = np.polyfit(xAxis, result, deg)
+    plt.plot(xAxis, result, 'o')
+    plt.style.use('fivethirtyeight')
+    plt.xlabel('Revisions')
+    plt.ylabel('Similarity')
+    plt.suptitle(article_name, fontsize = 16)
+    plt.title('Slope = ' + str(slope))
+    plt.plot(xAxis, slope*xAxis + intercept)
+    #plt.show()
+    plt.savefig('images/USElineslope/'+article_name+'USErev_'+str(revilimit)+'deg_'+str(deg)+'.png',bbox_inches = "tight",dpi=800)
+    posfile.write(article_name[:-4] + ' slope = ' + str(slope)+'.\n')
+    posfile.close()
+    '''
     # Find the polynomial equation 
+    deg = 10
     z = np.polyfit(xAxis, result, deg) 
     p = np.poly1d(z)
-    '''
-    print('p = ')
-    print(p)'''
     # Find the derivative of the polynomial equation
     derivative = np.polyder(p)
-    '''
-    print('derivative = ')
-    print(np.polyder(p))'''
+    
     #x = np.polyval(derivative, xAxis)
     x = [(np.polyval(derivative,i)) for i in xAxis]
     # Find the number of positive slopes
@@ -194,7 +203,6 @@ def plotDist(article_name, revilimit):
         if i > 0:
             posper += 1
     posper = (posper/len(result)) * 100
-
     # Note down the positive slopes percentage of the file 
     posfile.write(article_name[:-4] + ' = ' + str(posper) + '% positive.''\n')
     print('Positive percentage = ', str(posper))
@@ -206,12 +214,13 @@ def plotDist(article_name, revilimit):
     plt.suptitle(article_name, fontsize = 16)
     plt.title('Positive = ' + str(posper) + '%')
     plt.savefig('images/USEslope/'+article_name+'USErev_'+str(revilimit)+'deg_'+str(deg)+'.png',bbox_inches = "tight",dpi=800)
-    
-    #plt.savefig('images/USE/'+article_name+'USErev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
-    #plt.show()
-    print("--- Time taken to execute: %s seconds ---" % (time.time() - start_time))
     posfile.close()
-    return posper
+    '''
+
+
+    print("--- Time taken to execute: %s seconds ---" % (time.time() - start_time))
+    
+    return slope
 
 totalposper = 0
 x = 0 
@@ -241,7 +250,7 @@ for article_name in fileNames:
         else:
             print('Skipping ' + article_name[:-4])
 
-posfile = open("positivedeg10.txt", "a")
+posfile = open("positivedeg1.txt", "a")
 posfile.write('Total = ' + str(totalposper))
 posfile.close()
 '''
