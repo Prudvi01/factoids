@@ -21,8 +21,8 @@ import sys
 from sentence_transformers import SentenceTransformer
 from sentence_transformers import models, losses
 import nltk
-from test import num_of_revi
-from test import clean
+from helper import num_of_revi
+from helper import clean
 #from WikiExtractor import Extractor
 nltk.download('punkt')
 

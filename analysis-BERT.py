@@ -18,7 +18,7 @@ import os
 import sys
 from sentence_transformers import SentenceTransformer
 import nltk
-from test import num_of_revi
+from helper import num_of_revi
 nltk.download('punkt')
 
 tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
