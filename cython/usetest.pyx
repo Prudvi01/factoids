@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #%%cython -+
 #cython: language_level=3
+# cython: c_string_type=unicode, c_string_encoding=default
 import xml.etree.cElementTree as ec
 import mwparserfromhell
 import matplotlib.pyplot as plt
@@ -66,7 +67,7 @@ session.run(init_op)
 
 result = []
 
-cdef int fast_loop(DocElement* docs, int n_docs):
+cdef fast_loop(DocElement* docs, int n_docs):
     cdef list clean_Text = []
     cdef list distance_list = []
     cdef int sent_num = 0
@@ -90,7 +91,7 @@ cdef int fast_loop(DocElement* docs, int n_docs):
 
     return distance_list, sent_num
 
-def main_nlp_fast(doc_list):
+cpdef main_nlp_fast(doc_list):
     cdef int i, n_out, n_docs = len(doc_list)
     cdef Pool mem = Pool()
     cdef DocElement* docs = <DocElement*>PyMem_Malloc(n_docs * sizeof(DocElement))
@@ -105,6 +106,7 @@ def main_nlp_fast(doc_list):
     distance_list, sent_num = fast_loop(docs, n_docs)
     PyMem_Free(docs)
     return distance_list, sent_num
+
 # Print iterations progress
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
     """
@@ -132,32 +134,36 @@ def get_features(texts):
         texts = [texts]
     return session.run(embedded_text, feed_dict={text_input: texts})
 
-def cosine_similarity(v1, v2):
+cpdef float cosine_similarity(v1, v2):
     mag1 = np.linalg.norm(v1)
     mag2 = np.linalg.norm(v2)
     if (not mag1) or (not mag2):
         return 0
     return np.dot(v1, v2) / (mag1 * mag2)
 
-def test_similarity(text1, text2):
+cpdef float test_similarity(text1, text2):
     vec1 = get_features(text1)[0]
     vec2 = get_features(text2)[0]
     #print(vec1.shape)
     return cosine_similarity(vec1, vec2)
 
 def getDist(article_name, revilimit):
-    cdef int crevilimit = revilimit
     numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
-    revi = 0
+    cdef int revi = 0
     print(article_name)
     printProgressBar(0, revilimit, prefix = 'Progress:', suffix = 'Complete', length = 50)
     t1 = time.time()
     tree = ec.parse('wiki_data/' + article_name + '.xml')
-    result = []
+    cdef list result = []
     root = tree.getroot()
     root = root[1]
     Text = ''
     reverts = {}
+    cdef list bad_chars = [';', ':', '!','*','/','"','\n',',']
+    cdef list clean_Text = []
+    cdef list distance_list = []
+    cdef int sent_num = 0
+    cdef list sent_list = []
     for child in root:
         if 'revision' in child.tag:
             revi += 1
@@ -165,9 +171,9 @@ def getDist(article_name, revilimit):
             #print('REVISION = ' + str(revi) + '/' + str(numOfRevi))
             for each in child:           
                 if 'text' in each.tag:
-                    Text = each.text
                     clean_Text = []
                     distance_list = []
+                    Text = each.text
                     if(Text!=None):  
                                              
                         Text = knolAnalysis.getCleanText(Text)
@@ -175,10 +181,8 @@ def getDist(article_name, revilimit):
                         #print(Text)
                         sent_list = tokenizer.tokenize(Text)
                         sent_num = 0
-                        
                         distance_list, sent_num = main_nlp_fast(sent_list)
-                        #distance_list = fast_loop()
-                        '''
+                        ''''
                         for sen in sent_list:
                             if(not sen.isspace()):
                                 sent_num+=1
@@ -226,23 +230,33 @@ def getDist(article_name, revilimit):
         #print(required)
         #print(len(required))
     
-def plotDist(article_name, revilimit):
-    posfile = open("positivedeg10.txt", "a")
+cpdef plotDist(article_name, revilimit):
+    posfile = open("positivedeg1.txt", "a")
     result = getDist(article_name, revilimit) # Y axis
+    cdef int i
     xAxis = [i for i in range(1,len(result)+1)]
     xAxis = np.array(xAxis)  
-    deg = 3
+    deg = 1
+    slope, intercept = np.polyfit(xAxis, result, deg)
+    plt.plot(xAxis, result, 'o')
+    plt.style.use('fivethirtyeight')
+    plt.xlabel('Revisions')
+    plt.ylabel('Similarity')
+    plt.suptitle(article_name, fontsize = 16)
+    plt.title('Slope = ' + str(slope))
+    plt.plot(xAxis, slope*xAxis + intercept)
+    #plt.show()
+    #plt.savefig('images/USElineslope/'+article_name+'USErev_'+str(revilimit)+'deg_'+str(deg)+'.png',bbox_inches = "tight",dpi=800)
+    posfile.write(article_name[:-4] + ' slope = ' + str(slope)+'.\n')
+    posfile.close()
+    '''
     # Find the polynomial equation 
+    deg = 10
     z = np.polyfit(xAxis, result, deg) 
     p = np.poly1d(z)
-    '''
-    print('p = ')
-    print(p)'''
     # Find the derivative of the polynomial equation
     derivative = np.polyder(p)
-    '''
-    print('derivative = ')
-    print(np.polyder(p))'''
+    
     #x = np.polyval(derivative, xAxis)
     x = [(np.polyval(derivative,i)) for i in xAxis]
     # Find the number of positive slopes
@@ -251,7 +265,6 @@ def plotDist(article_name, revilimit):
         if i > 0:
             posper += 1
     posper = (posper/len(result)) * 100
-
     # Note down the positive slopes percentage of the file 
     posfile.write(article_name[:-4] + ' = ' + str(posper) + '% positive.''\n')
     print('Positive percentage = ', str(posper))
@@ -263,13 +276,13 @@ def plotDist(article_name, revilimit):
     plt.suptitle(article_name, fontsize = 16)
     plt.title('Positive = ' + str(posper) + '%')
     plt.savefig('images/USEslope/'+article_name+'USErev_'+str(revilimit)+'deg_'+str(deg)+'.png',bbox_inches = "tight",dpi=800)
-    
-    #plt.savefig('images/USE/'+article_name+'USErev_'+str(revilimit)+'.png',bbox_inches = "tight",dpi=800)
-    #plt.show()
-    print("--- Time taken to execute: %s seconds ---" % (time.time() - start_time))
     posfile.close()
-    return posper
+    '''
 
+
+    print("--- Time taken to execute: %s seconds ---" % (time.time() - start_time))
+    
+    return slope
 
 '''
 totalposper = 0
@@ -282,35 +295,31 @@ for article_name in fileNames:
     if not article_name == '.DS_Store' and not article_name == '.gitignore':
         if not (article_name[:-4] + '\n') in completed:    
             arguments = sys.argv
-            numOfRevi = num_of_revi('wiki_data/' + 'Bombing_of_Singapore_(1944–45).xml')
+            numOfRevi = num_of_revi('wiki_data/' + article_name)
             if len(arguments) < 2:
                 revilimit = numOfRevi
             else:
                 revilimit = int(sys.argv[1])
 
-            cProfile.run('plotDist("Bombing_of_Singapore_(1944–45)", 200).run()', 'restats')
-            #x += plotDist('Yugoslav_monitor_Vardar', revilimit)
+            x += plotDist(article_name[:-4], revilimit)
             totalposper += x
             print('')
             f = open("completeduse.txt", "a")
-            f.write('Bombing_of_Singapore_(1944–45)'' + '\n')
+            f.write(article_name[:-4] + '\n')
             f.close()
-            print("Article Bombing_of_Singapore_(1944–45) is done:")
+            print("Article "+article_name[:-4]+" is done:")
             print('Total = ' + str(totalposper))
             
         else:
             print('Skipping ' + article_name[:-4])
-p = pstats.Stats('restats')
-p.sort_stats('cumulative').print_stats(30)
 
-
-
-posfile = open("positivedeg10.txt", "a")
+posfile = open("positivedeg1.txt", "a")
 posfile.write('Total = ' + str(totalposper))
 posfile.close()
 '''
+
 def run():
-    article_name = 'Bombing_of_Singapore_(1944–45)'
+    article_name = 'Britomart_Redeems_Faire_Amoret'
     arguments = sys.argv
     numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
     if len(arguments) < 2:
@@ -319,8 +328,3 @@ def run():
         revilimit = int(sys.argv[1])
 
     plotDist(article_name, revilimit)
-''''
-cProfile.run('plotDist("Bombing_of_Singapore_(1944–45)", 200)', 'restats')
-p = pstats.Stats('restats')
-p.sort_stats('cumulative').print_stats(30)
-'''

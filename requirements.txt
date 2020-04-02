@@ -160,8 +160,6 @@ patool
 prettytable
 protobuf
 psutil
-pyasnl
-pyasn1-modules
 pycountry
 pyparsing
 pyrsistent

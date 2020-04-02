@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+#%%cython -+
+#cython: language_level=3
 import xml.etree.cElementTree as ec
 import mwparserfromhell
 import matplotlib.pyplot as plt
@@ -91,10 +93,11 @@ def test_similarity(text1, text2):
     #print(vec1.shape)
     return cosine_similarity(vec1, vec2)
 
-def getDist(article_name):
-    #numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
+def getDist(article_name, revilimit):
+    numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
     revi = 0
-    #printProgressBar(0, revilimit, prefix = 'Progress:', suffix = 'Complete', length = 50)
+    print(article_name)
+    printProgressBar(0, revilimit, prefix = 'Progress:', suffix = 'Complete', length = 50)
     t1 = time.time()
     tree = ec.parse('wiki_data/' + article_name + '.xml')
     result = []
@@ -106,8 +109,8 @@ def getDist(article_name):
     for child in root:
         if 'revision' in child.tag:
             revi += 1
-            #printProgressBar(revi, revilimit, prefix = article_name, suffix = 'Complete', length = 50)
-            print('REVISION = ' + str(revi))
+            printProgressBar(revi, revilimit, prefix = article_name, suffix = 'Complete', length = 50)
+            #print('REVISION = ' + str(revi) + '/' + str(numOfRevi))
             for each in child:           
                 if 'text' in each.tag:
                     clean_Text = []
@@ -153,11 +156,11 @@ def getDist(article_name):
                             
                     except:
                         reverts[sha1Value] = 1
-            '''
+            
             if revi >= revilimit:
                 print('elif revi = ' + str(revi))
                 break
-            '''
+        
 
                 
                 
@@ -168,45 +171,100 @@ def getDist(article_name):
         #print(required)
         #print(len(required))
     
-def plotDist(article_name):
-    result = getDist(article_name)
+def plotDist(article_name, revilimit):
+    posfile = open("positivedeg1.txt", "a")
+    result = getDist(article_name, revilimit) # Y axis
     xAxis = [i for i in range(1,len(result)+1)]
-    
+    xAxis = np.array(xAxis)  
+    deg = 1
+    slope, intercept = np.polyfit(xAxis, result, deg)
+    plt.plot(xAxis, result, 'o')
     plt.style.use('fivethirtyeight')
-    fig, ax = plt.subplots()
-    #plt.errorbar(xAxis, distance[0], yerr=distance[1], fmt='o', markersize=2, ls='--', lw=0.8, color='black', ecolor='lightgray', elinewidth=0.7, capsize=0)
-    ax.set_xlabel('Revisions')
-    
-    ax.set_ylabel('Average of Distance')
-    
-    ax.plot(xAxis,result,color='coral',linewidth=2.0)
-    plt.savefig('images/USE/'+article_name+'USE.png',bbox_inches = "tight",dpi=800)
+    plt.xlabel('Revisions')
+    plt.ylabel('Similarity')
+    plt.suptitle(article_name, fontsize = 16)
+    plt.title('Slope = ' + str(slope))
+    plt.plot(xAxis, slope*xAxis + intercept)
     #plt.show()
-    print("--- Time taken to execute: %s seconds ---" % (time.time() - start_time))
+    #plt.savefig('images/USElineslope/'+article_name+'USErev_'+str(revilimit)+'deg_'+str(deg)+'.png',bbox_inches = "tight",dpi=800)
+    posfile.write(article_name[:-4] + ' slope = ' + str(slope)+'.\n')
+    posfile.close()
+    '''
+    # Find the polynomial equation 
+    deg = 10
+    z = np.polyfit(xAxis, result, deg) 
+    p = np.poly1d(z)
+    # Find the derivative of the polynomial equation
+    derivative = np.polyder(p)
+    
+    #x = np.polyval(derivative, xAxis)
+    x = [(np.polyval(derivative,i)) for i in xAxis]
+    # Find the number of positive slopes
+    posper = 0
+    for i in x:
+        if i > 0:
+            posper += 1
+    posper = (posper/len(result)) * 100
+    # Note down the positive slopes percentage of the file 
+    posfile.write(article_name[:-4] + ' = ' + str(posper) + '% positive.''\n')
+    print('Positive percentage = ', str(posper))
+    xp = np.linspace(0, len(result), 100)
+    plt.style.use('fivethirtyeight')
+    plt.xlabel('Revisions')
+    plt.ylabel('Similarity')
+    plt.plot(xAxis, result, '.', xp, p(xp), '-', lw=1.8)
+    plt.suptitle(article_name, fontsize = 16)
+    plt.title('Positive = ' + str(posper) + '%')
+    plt.savefig('images/USEslope/'+article_name+'USErev_'+str(revilimit)+'deg_'+str(deg)+'.png',bbox_inches = "tight",dpi=800)
+    posfile.close()
+    '''
 
+
+    print("--- Time taken to execute: %s seconds ---" % (time.time() - start_time))
+    
+    return slope
+
+'''
+totalposper = 0
+x = 0 
+completedfile = open("completeduse.txt", "r")
+completed = completedfile.readlines()
+completedfile.close()
 fileNames = os.listdir('wiki_data/')
 for article_name in fileNames:
     if not article_name == '.DS_Store' and not article_name == '.gitignore':
-        arguments = sys.argv
-        '''
-        numOfRevi = num_of_revi('wiki_data/' + article_name)
-        if len(arguments) < 2:
-            revilimit = numOfRevi
-        else:
-            revilimit = int(sys.argv[1])
-        '''
-        plotDist(article_name[:-4])
-        print('')
-        print("Article "+article_name[:-4]+" is done:")
-        
-'''
-article_name = 'Bombing_of_Singapore_(1944–45)'
-arguments = sys.argv
-numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
-if len(arguments) < 2:
-    revilimit = numOfRevi
-else:
-    revilimit = int(sys.argv[1])
+        if not (article_name[:-4] + '\n') in completed:    
+            arguments = sys.argv
+            numOfRevi = num_of_revi('wiki_data/' + article_name)
+            if len(arguments) < 2:
+                revilimit = numOfRevi
+            else:
+                revilimit = int(sys.argv[1])
 
-plotDist(article_name, revilimit)
+            x += plotDist(article_name[:-4], revilimit)
+            totalposper += x
+            print('')
+            f = open("completeduse.txt", "a")
+            f.write(article_name[:-4] + '\n')
+            f.close()
+            print("Article "+article_name[:-4]+" is done:")
+            print('Total = ' + str(totalposper))
+            
+        else:
+            print('Skipping ' + article_name[:-4])
+
+posfile = open("positivedeg1.txt", "a")
+posfile.write('Total = ' + str(totalposper))
+posfile.close()
 '''
+
+def run():
+    article_name = 'Britomart_Redeems_Faire_Amoret'
+    arguments = sys.argv
+    numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
+    if len(arguments) < 2:
+        revilimit = numOfRevi
+    else:
+        revilimit = int(sys.argv[1])
+
+    plotDist(article_name, revilimit)
