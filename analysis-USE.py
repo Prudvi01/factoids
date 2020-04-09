@@ -21,17 +21,11 @@ from sentence_transformers import SentenceTransformer
 import nltk
 from helper import num_of_revi
 start_time = time.time()
-
 nltk.download('punkt')
-
 tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 stop_words = set(stopwords.words('english'))
-
-
 #To make tf 2.0 compatible with tf1.0 code, we disable the tf2.0 functionalities
 tf.compat.v1.disable_eager_execution()
-
-#model=gensim.models.KeyedVectors.load_word2vec_format("wiki-news-300d-1M-subword.vec")
 module_url = "https://tfhub.dev/google/universal-sentence-encoder/2" #@param ["https://tfhub.dev/google/universal-sentence-encoder/2", "https://tfhub.dev/google/universal-sentence-encoder-large/3"]
 embed = hub.Module(module_url)
 print("model loaded")
@@ -91,6 +85,13 @@ def test_similarity(text1, text2):
     #print(vec1.shape)
     return cosine_similarity(vec1, vec2)
 
+def findPosper(x, resultlength):
+    posper = 0
+    for i in x:
+        if i > 0:
+            posper += 1
+    return (posper/resultlength) * 100
+    
 def getDist(article_name, revilimit):
     numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
     revi = 0
@@ -170,89 +171,72 @@ def getDist(article_name, revilimit):
         #print(len(required))
     
 def plotDist(article_name, revilimit):
-    posfile = open("positivedeg1.txt", "a")
+    # Open files and get xAxis and yAxis values
+    posfile1D = open("positivedegBD1.txt", "a")
+    posfile3D = open("positivedegBD3.txt", "a")
     result = getDist(article_name, revilimit) # Y axis
+    resultlength = len(result)
     xAxis = [i for i in range(1,len(result)+1)]
-    xAxis = np.array(xAxis)  
-    deg = 1
-    slope, intercept = np.polyfit(xAxis, result, deg)
+    xAxis = np.array(xAxis) 
+    # Plotting the data on graph
     plt.plot(xAxis, result, 'o')
     plt.style.use('fivethirtyeight')
     plt.xlabel('Revisions')
     plt.ylabel('Similarity')
     plt.suptitle(article_name, fontsize = 16)
-    plt.title('Slope = ' + str(slope))
-    plt.plot(xAxis, slope*xAxis + intercept)
-    #plt.show()
-    plt.savefig('images/USElineslope/'+article_name+'USErev_'+str(revilimit)+'deg_'+str(deg)+'.png',bbox_inches = "tight",dpi=800)
-    posfile.write(article_name[:-4] + ' slope = ' + str(slope)+'.\n')
-    posfile.close()
-    '''
-    # Find the polynomial equation 
-    deg = 10
-    z = np.polyfit(xAxis, result, deg) 
+    # Plotting 1 degree polynomial and finding it's slope percentage 
+    deg = 1
+    z = np.polyfit(xAxis, result, deg)
     p = np.poly1d(z)
-    # Find the derivative of the polynomial equation
     derivative = np.polyder(p)
-    
-    #x = np.polyval(derivative, xAxis)
     x = [(np.polyval(derivative,i)) for i in xAxis]
-    # Find the number of positive slopes
-    posper = 0
-    for i in x:
-        if i > 0:
-            posper += 1
-    posper = (posper/len(result)) * 100
-    # Note down the positive slopes percentage of the file 
-    posfile.write(article_name[:-4] + ' = ' + str(posper) + '% positive.''\n')
-    print('Positive percentage = ', str(posper))
+    posper = findPosper(x, resultlength)
     xp = np.linspace(0, len(result), 100)
-    plt.style.use('fivethirtyeight')
-    plt.xlabel('Revisions')
-    plt.ylabel('Similarity')
     plt.plot(xAxis, result, '.', xp, p(xp), '-', lw=1.8)
-    plt.suptitle(article_name, fontsize = 16)
-    plt.title('Positive = ' + str(posper) + '%')
-    plt.savefig('images/USEslope/'+article_name+'USErev_'+str(revilimit)+'deg_'+str(deg)+'.png',bbox_inches = "tight",dpi=800)
-    posfile.close()
-    '''
-
-
-    print("--- Time taken to execute: %s seconds ---" % (time.time() - start_time))
+    posfile1D.write(article_name[:-4] + ' = ' + str(posper) + '% positive.''\n')
+    # Plotting 3 degree polynomial and finding it's slope percentage 
+    deg = 3
+    z = np.polyfit(xAxis, result, deg)
+    p = np.poly1d(z)
+    derivative = np.polyder(p)
+    x = [(np.polyval(derivative,i)) for i in xAxis]
+    posper = findPosper(x, resultlength)
+    xp = np.linspace(0, len(result), 100)
+    plt.plot(xAxis, result, '.', xp, p(xp), '-', lw=1.8)
+    posfile3D.write(article_name[:-4] + ' = ' + str(posper) + '% positive.''\n')
+    # Save the graph and close the files
+    plt.savefig('images/USE1and3/'+article_name+'USErev_'+str(revilimit)+'deg_'+str(deg)+'.png',bbox_inches = "tight",dpi=800)
+    posfile1D.close()
+    posfile3D.close()
     
-    return slope
+    print("--- Time taken to execute: %s seconds ---" % (time.time() - start_time))
 
-totalposper = 0
-x = 0 
-completedfile = open("completeduse.txt", "r")
-completed = completedfile.readlines()
-completedfile.close()
-fileNames = os.listdir('wiki_data/')
-for article_name in fileNames:
-    if not article_name == '.DS_Store' and not article_name == '.gitignore':
-        if not (article_name[:-4] + '\n') in completed:    
-            arguments = sys.argv
-            numOfRevi = num_of_revi('wiki_data/' + article_name)
-            if len(arguments) < 2:
-                revilimit = numOfRevi
+def run(): 
+    completedfile = open("completeduse.txt", "r")
+    completed = completedfile.readlines()
+    completedfile.close()
+    fileNames = os.listdir('wiki_data/')
+    for article_name in fileNames:
+        if not article_name == '.DS_Store' and not article_name == '.gitignore':
+            if not (article_name[:-4] + '\n') in completed:    
+                arguments = sys.argv
+                numOfRevi = num_of_revi('wiki_data/' + article_name)
+                if len(arguments) < 2:
+                    revilimit = numOfRevi
+                else:
+                    revilimit = int(sys.argv[1])
+
+                plotDist(article_name[:-4], revilimit)
+                print('')
+                f = open("completeduse.txt", "a")
+                f.write(article_name[:-4] + '\n')
+                f.close()
+                print("Article "+article_name[:-4]+" is done:")
+                
             else:
-                revilimit = int(sys.argv[1])
+                print('Skipping ' + article_name[:-4])
 
-            x += plotDist(article_name[:-4], revilimit)
-            totalposper += x
-            print('')
-            f = open("completeduse.txt", "a")
-            f.write(article_name[:-4] + '\n')
-            f.close()
-            print("Article "+article_name[:-4]+" is done:")
-            print('Total = ' + str(totalposper))
-            
-        else:
-            print('Skipping ' + article_name[:-4])
-
-posfile = open("positivedeg1.txt", "a")
-posfile.write('Total = ' + str(totalposper))
-posfile.close()
+run()
 '''
 article_name = 'Bombing_of_Singapore_(1944–45)'
 arguments = sys.argv
