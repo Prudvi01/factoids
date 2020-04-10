@@ -86,13 +86,13 @@ def test_similarity(text1, text2):
     return cosine_similarity(vec1, vec2)
     
 def getDist(article_name, revilimit):
-    numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
+    numOfRevi = num_of_revi('data_set/' + article_name + '.xml')
     revi = 0
     print(article_name)
     printProgressBar(0, revilimit, prefix = 'Progress:', suffix = 'Complete', length = 50)
     t1 = time.time()
-    #tree = ec.parse('wiki_data/' + article_name + '.xml')
-    context_wiki = ec.iterparse('wiki_data/' + article_name + '.xml', events=("start","end"))
+    #tree = ec.parse('data_set/' + article_name + '.xml')
+    context_wiki = ec.iterparse('data_set/' + article_name + '.xml', events=("start","end"))
     context_wiki = iter(context_wiki)
     result = []
     #root = tree.getroot()
@@ -219,12 +219,12 @@ def run():
     completedfile = open("completeduse.txt", "r")
     completed = completedfile.readlines()
     completedfile.close()
-    fileNames = os.listdir('wiki_data/')
+    fileNames = os.listdir('data_set/')
     for article_name in fileNames:
         if not article_name == '.DS_Store' and not article_name == '.gitignore':
             if not (article_name[:-4] + '\n') in completed:    
                 arguments = sys.argv
-                numOfRevi = num_of_revi('wiki_data/' + article_name)
+                numOfRevi = num_of_revi('data_set/' + article_name)
                 if len(arguments) < 2:
                     revilimit = numOfRevi
                 else:
@@ -244,7 +244,7 @@ run()
 '''
 article_name = 'Bombing_of_Singapore_(1944–45)'
 arguments = sys.argv
-numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
+numOfRevi = num_of_revi('data_set/' + article_name + '.xml')
 if len(arguments) < 2:
     revilimit = numOfRevi
 else:
