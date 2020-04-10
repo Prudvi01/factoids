@@ -19,7 +19,7 @@ import os
 import sys
 from sentence_transformers import SentenceTransformer
 import nltk
-from helper import num_of_revi
+from helper import num_of_revi, findPosper
 start_time = time.time()
 nltk.download('punkt')
 tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
@@ -84,13 +84,6 @@ def test_similarity(text1, text2):
     vec2 = get_features(text2)[0]
     #print(vec1.shape)
     return cosine_similarity(vec1, vec2)
-
-def findPosper(x, resultlength):
-    posper = 0
-    for i in x:
-        if i > 0:
-            posper += 1
-    return (posper/resultlength) * 100
     
 def getDist(article_name, revilimit):
     numOfRevi = num_of_revi('wiki_data/' + article_name + '.xml')
@@ -98,19 +91,22 @@ def getDist(article_name, revilimit):
     print(article_name)
     printProgressBar(0, revilimit, prefix = 'Progress:', suffix = 'Complete', length = 50)
     t1 = time.time()
-    tree = ec.parse('wiki_data/' + article_name + '.xml')
+    #tree = ec.parse('wiki_data/' + article_name + '.xml')
+    context_wiki = ec.iterparse('wiki_data/' + article_name + '.xml', events=("start","end"))
+    context_wiki = iter(context_wiki)
     result = []
-    root = tree.getroot()
-    root = root[1]
+    #root = tree.getroot()
+    #root = root[1]
     Text = ''
     reverts = {}
     bad_chars = [';', ':', '!','*','/','"','\n',',']
-    for child in root:
-        if 'revision' in child.tag:
+    event_wiki, root_wiki = next(context_wiki)
+    for event, elem in context_wiki:
+        if event == "end" and 'revision' in elem.tag:
             revi += 1
             printProgressBar(revi, revilimit, prefix = article_name, suffix = 'Complete', length = 50)
             #print('REVISION = ' + str(revi) + '/' + str(numOfRevi))
-            for each in child:           
+            for each in elem:           
                 if 'text' in each.tag:
                     clean_Text = []
                     Text = each.text
@@ -118,8 +114,6 @@ def getDist(article_name, revilimit):
                     if(Text!=None):  
                                              
                         Text = knolAnalysis.getCleanText(Text)
-                        #Text = clean(Text)
-                        #print(Text)
                         sent_list = tokenizer.tokenize(Text)
                         sent_num = 0
                         
@@ -151,11 +145,12 @@ def getDist(article_name, revilimit):
                     sha1Value = each.text
                     try:
                         if reverts[sha1Value]:
-                           result.pop(-2)
-                            
+                           result.pop(-2) 
                     except:
                         reverts[sha1Value] = 1
             
+            elem.clear()
+            root_wiki.clear()
             if revi >= revilimit:
                 print('elif revi = ' + str(revi))
                 break
@@ -174,16 +169,23 @@ def plotDist(article_name, revilimit):
     # Open files and get xAxis and yAxis values
     posfile1D = open("positivedegBD1.txt", "a")
     posfile3D = open("positivedegBD3.txt", "a")
+    #distfile = open("results/"+article_name+'USErev_'+str(revilimit)+'.txt', 'w')
     result = getDist(article_name, revilimit) # Y axis
     resultlength = len(result)
     xAxis = [i for i in range(1,len(result)+1)]
     xAxis = np.array(xAxis) 
+
+    # Write the distances to a file
+    with open("results/"+article_name+'USErev_'+str(revilimit)+'.txt', 'w') as filehandle:
+        filehandle.writelines("%s\n" % r for r in result)
+    '''    
     # Plotting the data on graph
     plt.plot(xAxis, result, 'o')
     plt.style.use('fivethirtyeight')
     plt.xlabel('Revisions')
     plt.ylabel('Similarity')
     plt.suptitle(article_name, fontsize = 16)
+    '''
     # Plotting 1 degree polynomial and finding it's slope percentage 
     deg = 1
     z = np.polyfit(xAxis, result, deg)
@@ -191,9 +193,10 @@ def plotDist(article_name, revilimit):
     derivative = np.polyder(p)
     x = [(np.polyval(derivative,i)) for i in xAxis]
     posper = findPosper(x, resultlength)
-    xp = np.linspace(0, len(result), 100)
-    plt.plot(xAxis, result, '.', xp, p(xp), '-', lw=1.8)
+    #xp = np.linspace(0, len(result), 100)
+    #plt.plot(xAxis, result, '.', xp, p(xp), '-', lw=1.8)
     posfile1D.write(article_name[:-4] + ' = ' + str(posper) + '% positive.''\n')
+
     # Plotting 3 degree polynomial and finding it's slope percentage 
     deg = 3
     z = np.polyfit(xAxis, result, deg)
@@ -201,9 +204,10 @@ def plotDist(article_name, revilimit):
     derivative = np.polyder(p)
     x = [(np.polyval(derivative,i)) for i in xAxis]
     posper = findPosper(x, resultlength)
-    xp = np.linspace(0, len(result), 100)
-    plt.plot(xAxis, result, '.', xp, p(xp), '-', lw=1.8)
+    #xp = np.linspace(0, len(result), 100)
+    #plt.plot(xAxis, result, '.', xp, p(xp), '-', lw=1.8)
     posfile3D.write(article_name[:-4] + ' = ' + str(posper) + '% positive.''\n')
+
     # Save the graph and close the files
     plt.savefig('images/USE1and3/'+article_name+'USErev_'+str(revilimit)+'deg_'+str(deg)+'.png',bbox_inches = "tight",dpi=800)
     posfile1D.close()
