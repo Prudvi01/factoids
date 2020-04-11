@@ -70,28 +70,29 @@ def run(dire):
     completedfile.close()
     fileNames = os.listdir(str(dire))
     for article_name in fileNames:
-        if not article_name == '.DS_Store' and not article_name == '.gitignore':
-            if not (article_name[:-4] + '\n') in completed:    
-                '''
-                arguments = sys.argv
-                numOfRevi = num_of_revi(dire + article_name)
-                if len(arguments) < 2:
-                    revilimit = numOfRevi
+        if os.path.getsize(article_name) > 0:
+            if not article_name == '.DS_Store' and not article_name == '.gitignore':
+                if not (article_name[:-4] + '\n') in completed:    
+                    '''
+                    arguments = sys.argv
+                    numOfRevi = num_of_revi(dire + article_name)
+                    if len(arguments) < 2:
+                        revilimit = numOfRevi
+                    else:
+                        revilimit = int(sys.argv[1])
+                    '''
+                    result = findsent(dire, article_name[:-4])
+                    # Write the distances to a file
+                    with open("sentresults/"+article_name+'.txt', 'w') as filehandle:
+                        filehandle.writelines("%s\n" % r for r in result)             
+                    #plotDist(article_name[:-4], revilimit)
+                    print('')
+                    f = open("completeduse.txt", "a")
+                    f.write(article_name[:-4] + '\n')
+                    f.close()
+                    print("Article "+article_name[:-4]+" is done:")
+                    
                 else:
-                    revilimit = int(sys.argv[1])
-                '''
-                result = findsent(dire, article_name[:-4])
-                # Write the distances to a file
-                with open("sentresults/"+article_name+'.txt', 'w') as filehandle:
-                    filehandle.writelines("%s\n" % r for r in result)             
-                #plotDist(article_name[:-4], revilimit)
-                print('')
-                f = open("completeduse.txt", "a")
-                f.write(article_name[:-4] + '\n')
-                f.close()
-                print("Article "+article_name[:-4]+" is done:")
-                
-            else:
-                print('Skipping ' + article_name[:-4])
+                    print('Skipping ' + article_name[:-4])
 
 run('data_set/')
