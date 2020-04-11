@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from helper import num_of_revi
+#from helper import num_of_revi
 import os
 import sys
 import time
@@ -29,10 +29,10 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
         print()
 
 def findsent(dire, article_name, revilimit):
-    numOfRevi = num_of_revi(dire + article_name + '.xml')
+    #numOfRevi = num_of_revi(dire + article_name + '.xml')
     revi = 0
     print(article_name)
-    printProgressBar(0, revilimit, prefix = 'Progress:', suffix = 'Complete', length = 50)
+    #printProgressBar(0, revilimit, prefix = 'Progress:', suffix = 'Complete', length = 50)
     t1 = time.time()
     context_wiki = ec.iterparse(dire + article_name + '.xml', events=("start","end"))
     context_wiki = iter(context_wiki)
@@ -72,16 +72,17 @@ def run(dire):
     for article_name in fileNames:
         if not article_name == '.DS_Store' and not article_name == '.gitignore':
             if not (article_name[:-4] + '\n') in completed:    
+                '''
                 arguments = sys.argv
                 numOfRevi = num_of_revi(dire + article_name)
                 if len(arguments) < 2:
                     revilimit = numOfRevi
                 else:
                     revilimit = int(sys.argv[1])
-
-                result = findsent(dire, article_name[:-4], revilimit)
+                '''
+                result = findsent(dire, article_name[:-4])
                 # Write the distances to a file
-                with open("sentresults/"+article_name+'USErev_'+str(revilimit)+'.txt', 'w') as filehandle:
+                with open("sentresults/"+article_name+'.txt', 'w') as filehandle:
                     filehandle.writelines("%s\n" % r for r in result)             
                 #plotDist(article_name[:-4], revilimit)
                 print('')
