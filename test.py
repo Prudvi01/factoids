@@ -28,7 +28,7 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
     if iteration == total: 
         print()
 
-def findsent(dire, article_name, revilimit):
+def findsent(dire, article_name):
     #numOfRevi = num_of_revi(dire + article_name + '.xml')
     revi = 0
     print(article_name)
@@ -44,7 +44,7 @@ def findsent(dire, article_name, revilimit):
     for event, elem in context_wiki:
         if event == "end" and 'revision' in elem.tag:
             revi += 1
-            printProgressBar(revi, revilimit, prefix = article_name, suffix = 'Complete', length = 50)
+            #printProgressBar(revi, revilimit, prefix = article_name, suffix = 'Complete', length = 50)
             #print('REVISION = ' + str(revi) + '/' + str(numOfRevi))
             for each in elem:           
                 if 'text' in each.tag:
