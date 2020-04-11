@@ -87,7 +87,7 @@ def run(dire):
                         filehandle.writelines("%s\n" % r for r in result)             
                     #plotDist(article_name[:-4], revilimit)
                     print('')
-                    f = open("completeduse.txt", "a")
+                    f = open("completedusetest.txt", "a")
                     f.write(article_name[:-4] + '\n')
                     f.close()
                     print("Article "+article_name[:-4]+" is done:")
