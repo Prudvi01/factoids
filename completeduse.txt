@@ -1,19 +1,19 @@
 2006_Westchester_County_tornado
 Brockway_Mountain_Drive
-92nd Academy Awards
-Margaret Qualley
-Ana de Armas
-Meg Johnson (poet)
-Carroll Shelby
-Emma Mackey
-Natalie Portman
-Flag of Scotland
-Prince Philip, Duke of Edinburgh
-Frogmore Cottage
-Shabana Azmi
-Harriet Tubman
-Standard deviation
-List of highest-grossing films
-The Crown (TV series)
-Lunar New Year
-Travis Scott
+92nd_Academy_Awards
+Margaret_Qualley
+Ana_de_Armas
+Meg_Johnson_(poet)
+Carroll_Shelby
+Emma_Mackey
+Natalie_Portman
+Flag_of_Scotland
+Prince_Philip,_Duke_of_Edinburgh
+Frogmore_Cottage
+Shabana_Azmi
+Harriet_Tubman
+Standard_deviation
+List_of_highest-grossing_films
+The_Crown_(TV_series)
+Lunar_New_Year
+Travis_Scott
