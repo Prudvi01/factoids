@@ -222,7 +222,7 @@ def run():
     completedfile.close()
     fileNames = os.listdir('data_set/')
     for article_name in fileNames:
-        if os.path.getsize(dire + article_name) > 0:
+        if os.path.getsize(article_name) > 0:
             if not article_name == '.DS_Store' and not article_name == '.gitignore':
                 if not (article_name[:-4] + '\n') in completed:  
                     '''  
