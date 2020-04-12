@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import xml.etree.cElementTree as ec
 import mwparserfromhell
 import matplotlib.pyplot as plt
@@ -85,11 +84,11 @@ def test_similarity(text1, text2):
     #print(vec1.shape)
     return cosine_similarity(vec1, vec2)
     
-def getDist(article_name, revilimit):
-    numOfRevi = num_of_revi('data_set/' + article_name + '.xml')
+def getDist(article_name):
+    #numOfRevi = num_of_revi('data_set/' + article_name + '.xml')
     revi = 0
     print(article_name)
-    printProgressBar(0, revilimit, prefix = 'Progress:', suffix = 'Complete', length = 50)
+    #printProgressBar(0, revilimit, prefix = 'Progress:', suffix = 'Complete', length = 50)
     t1 = time.time()
     #tree = ec.parse('data_set/' + article_name + '.xml')
     context_wiki = ec.iterparse('data_set/' + article_name + '.xml', events=("start","end"))
@@ -104,7 +103,7 @@ def getDist(article_name, revilimit):
     for event, elem in context_wiki:
         if event == "end" and 'revision' in elem.tag:
             revi += 1
-            printProgressBar(revi, revilimit, prefix = article_name, suffix = 'Complete', length = 50)
+            #printProgressBar(revi, revilimit, prefix = article_name, suffix = 'Complete', length = 50)
             #print('REVISION = ' + str(revi) + '/' + str(numOfRevi))
             for each in elem:           
                 if 'text' in each.tag:
@@ -121,7 +120,7 @@ def getDist(article_name, revilimit):
                             if(not sen.isspace()):
                                 sent_num+=1
                                 if(sen[-1]=='.'):
-                                    sen = sen[:-1]
+                                     sen = sen[:-1]
                                 S = re.sub('==[^>]+==', '', sen)
                                 S = S.replace('\xa0',' ')
                                 S = ''.join(i for i in S if not i in bad_chars)
@@ -151,9 +150,11 @@ def getDist(article_name, revilimit):
             
             elem.clear()
             root_wiki.clear()
+            '''
             if revi >= revilimit:
                 print('elif revi = ' + str(revi))
                 break
+            '''
         
 
                 
@@ -165,18 +166,18 @@ def getDist(article_name, revilimit):
         #print(required)
         #print(len(required))
     
-def plotDist(article_name, revilimit):
+def plotDist(article_name):
     # Open files and get xAxis and yAxis values
     posfile1D = open("positivedegBD1.txt", "a")
     posfile3D = open("positivedegBD3.txt", "a")
     #distfile = open("results/"+article_name+'USErev_'+str(revilimit)+'.txt', 'w')
-    result = getDist(article_name, revilimit) # Y axis
+    result = getDist(article_name) # Y axis
     resultlength = len(result)
     xAxis = [i for i in range(1,len(result)+1)]
     xAxis = np.array(xAxis) 
 
     # Write the distances to a file
-    with open("results/"+article_name+'USErev_'+str(revilimit)+'.txt', 'w') as filehandle:
+    with open("results/"+article_name+'USE.txt', 'w') as filehandle:
         filehandle.writelines("%s\n" % r for r in result)
     '''    
     # Plotting the data on graph
@@ -209,7 +210,7 @@ def plotDist(article_name, revilimit):
     posfile3D.write(article_name[:-4] + ' = ' + str(posper) + '% positive.''\n')
 
     # Save the graph and close the files
-    plt.savefig('images/USE1and3/'+article_name+'USErev_'+str(revilimit)+'deg_'+str(deg)+'.png',bbox_inches = "tight",dpi=800)
+    #plt.savefig('images/USE1and3/'+article_name+'USEdeg_'+str(deg)+'.png',bbox_inches = "tight",dpi=800)
     posfile1D.close()
     posfile3D.close()
     
@@ -222,15 +223,16 @@ def run():
     fileNames = os.listdir('data_set/')
     for article_name in fileNames:
         if not article_name == '.DS_Store' and not article_name == '.gitignore':
-            if not (article_name[:-4] + '\n') in completed:    
+            if not (article_name[:-4] + '\n') in completed:  
+                '''  
                 arguments = sys.argv
                 numOfRevi = num_of_revi('data_set/' + article_name)
                 if len(arguments) < 2:
                     revilimit = numOfRevi
                 else:
                     revilimit = int(sys.argv[1])
-
-                plotDist(article_name[:-4], revilimit)
+                '''
+                plotDist(article_name[:-4])
                 print('')
                 f = open("completeduse.txt", "a")
                 f.write(article_name[:-4] + '\n')
