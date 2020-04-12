@@ -84,14 +84,14 @@ def test_similarity(text1, text2):
     #print(vec1.shape)
     return cosine_similarity(vec1, vec2)
     
-def getDist(article_name):
+def getDist(dire, article_name):
     #numOfRevi = num_of_revi('data_set/' + article_name + '.xml')
     revi = 0
     print(article_name)
     #printProgressBar(0, revilimit, prefix = 'Progress:', suffix = 'Complete', length = 50)
     t1 = time.time()
     #tree = ec.parse('data_set/' + article_name + '.xml')
-    context_wiki = ec.iterparse('data_set/' + article_name + '.xml', events=("start","end"))
+    context_wiki = ec.iterparse(dire + article_name + '.xml', events=("start","end"))
     context_wiki = iter(context_wiki)
     result = []
     #root = tree.getroot()
@@ -166,12 +166,12 @@ def getDist(article_name):
         #print(required)
         #print(len(required))
     
-def plotDist(article_name):
+def plotDist(dire, article_name):
     # Open files and get xAxis and yAxis values
     posfile1D = open("positivedegBD1.txt", "a")
     posfile3D = open("positivedegBD3.txt", "a")
     #distfile = open("results/"+article_name+'USErev_'+str(revilimit)+'.txt', 'w')
-    result = getDist(article_name) # Y axis
+    result = getDist(dire, article_name) # Y axis
     resultlength = len(result)
     xAxis = [i for i in range(1,len(result)+1)]
     xAxis = np.array(xAxis) 
@@ -216,13 +216,13 @@ def plotDist(article_name):
     
     print("--- Time taken to execute: %s seconds ---" % (time.time() - start_time))
 
-def run(): 
+def run(dire): 
     completedfile = open("completeduse.txt", "r")
     completed = completedfile.readlines()
     completedfile.close()
-    fileNames = os.listdir('data_set/')
+    fileNames = os.listdir(str(dire))
     for article_name in fileNames:
-        if os.path.getsize(article_name) > 0:
+        if os.path.getsize(dire + article_name) > 0:
             if not article_name == '.DS_Store' and not article_name == '.gitignore':
                 if not (article_name[:-4] + '\n') in completed:  
                     '''  
@@ -233,7 +233,7 @@ def run():
                     else:
                         revilimit = int(sys.argv[1])
                     '''
-                    plotDist(article_name[:-4])
+                    plotDist(dire, article_name[:-4])
                     print('')
                     f = open("completeduse.txt", "a")
                     f.write(article_name[:-4] + '\n')
@@ -243,7 +243,7 @@ def run():
                 else:
                     print('Skipping ' + article_name[:-4])
 
-run()
+run('data_set/')
 '''
 article_name = 'Bombing_of_Singapore_(1944–45)'
 arguments = sys.argv
