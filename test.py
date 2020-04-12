@@ -81,10 +81,16 @@ def run(dire):
                     else:
                         revilimit = int(sys.argv[1])
                     '''
-                    result = findsent(dire, article_name[:-4])
-                    # Write the distances to a file
-                    with open("sentresults/"+article_name+'.txt', 'w') as filehandle:
-                        filehandle.writelines("%s\n" % r for r in result)             
+                    try:
+                        result = findsent(dire, article_name[:-4])
+                        # Write the distances to a file
+                        with open("sentresults/"+article_name+'.txt', 'w') as filehandle:
+                            filehandle.writelines("%s\n" % r for r in result)  
+                    except:
+                        f = open("completederrortest.txt", "a")
+                        f.write(article_name[:-4] + '\n')
+                        f.close()
+                               
                     #plotDist(article_name[:-4], revilimit)
                     print('')
                     f = open("completedusetest.txt", "a")
