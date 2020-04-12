@@ -222,25 +222,26 @@ def run():
     completedfile.close()
     fileNames = os.listdir('data_set/')
     for article_name in fileNames:
-        if not article_name == '.DS_Store' and not article_name == '.gitignore':
-            if not (article_name[:-4] + '\n') in completed:  
-                '''  
-                arguments = sys.argv
-                numOfRevi = num_of_revi('data_set/' + article_name)
-                if len(arguments) < 2:
-                    revilimit = numOfRevi
+        if os.path.getsize(dire + article_name) > 0:
+            if not article_name == '.DS_Store' and not article_name == '.gitignore':
+                if not (article_name[:-4] + '\n') in completed:  
+                    '''  
+                    arguments = sys.argv
+                    numOfRevi = num_of_revi('data_set/' + article_name)
+                    if len(arguments) < 2:
+                        revilimit = numOfRevi
+                    else:
+                        revilimit = int(sys.argv[1])
+                    '''
+                    plotDist(article_name[:-4])
+                    print('')
+                    f = open("completeduse.txt", "a")
+                    f.write(article_name[:-4] + '\n')
+                    f.close()
+                    print("Article "+article_name[:-4]+" is done:")
+                    
                 else:
-                    revilimit = int(sys.argv[1])
-                '''
-                plotDist(article_name[:-4])
-                print('')
-                f = open("completeduse.txt", "a")
-                f.write(article_name[:-4] + '\n')
-                f.close()
-                print("Article "+article_name[:-4]+" is done:")
-                
-            else:
-                print('Skipping ' + article_name[:-4])
+                    print('Skipping ' + article_name[:-4])
 
 run()
 '''
