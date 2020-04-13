@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 dire = 'data_set'
 fileNames = os.listdir(str(dire))
