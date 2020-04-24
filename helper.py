@@ -16,3 +16,24 @@ def findPosper(x, resultlength):
         if i > 0:
             posper += 1
     return (posper/resultlength) * 100
+
+def justsent(temp, limit = 90000):
+    x = 0
+    newsent = []
+    for i in temp:
+        sent = i - x
+        if sent <= limit and sent >= - limit:
+            newsent.append(sent)
+        x = i
+    return newsent
+
+def chunkIt(seq, num):
+    avg = len(seq) / float(num)
+    out = []
+    last = 0.0
+
+    while last < len(seq):
+        out.append(seq[int(last):int(last + avg)])
+        last += avg
+
+    return out
