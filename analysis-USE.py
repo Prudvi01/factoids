@@ -194,8 +194,8 @@ def plotDist(dire, article_name):
     derivative = np.polyder(p)
     x = [(np.polyval(derivative,i)) for i in xAxis]
     posper = findPosper(x, resultlength)
-    #xp = np.linspace(0, len(result), 100)
-    #plt.plot(xAxis, result, '.', xp, p(xp), '-', lw=1.8)
+    xp = np.linspace(0, len(result), 100)
+    plt.plot(xAxis, result, '.', xp, p(xp), '-', lw=1.8)
     posfile1D.write(article_name[:-4] + ' = ' + str(posper) + '% positive.''\n')
 
     # Plotting 3 degree polynomial and finding it's slope percentage 
@@ -205,12 +205,12 @@ def plotDist(dire, article_name):
     derivative = np.polyder(p)
     x = [(np.polyval(derivative,i)) for i in xAxis]
     posper = findPosper(x, resultlength)
-    #xp = np.linspace(0, len(result), 100)
-    #plt.plot(xAxis, result, '.', xp, p(xp), '-', lw=1.8)
+    xp = np.linspace(0, len(result), 100)
+    plt.plot(xAxis, result, '.', xp, p(xp), '-', lw=1.8)
     posfile3D.write(article_name[:-4] + ' = ' + str(posper) + '% positive.''\n')
 
     # Save the graph and close the files
-    #plt.savefig('images/USE1and3/'+article_name+'USEdeg_'+str(deg)+'.png',bbox_inches = "tight",dpi=800)
+    plt.savefig('images/USE1and3/'+article_name+'USEdeg_'+str(deg)+'.png',bbox_inches = "tight",dpi=800)
     posfile1D.close()
     posfile3D.close()
     
